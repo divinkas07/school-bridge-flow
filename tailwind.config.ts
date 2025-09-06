@@ -22,6 +22,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -38,6 +39,16 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          green: {
+            DEFAULT: "hsl(var(--accent-green))",
+            foreground: "hsl(var(--accent-green-foreground))",
+            light: "hsl(var(--accent-green-light))",
+          },
+          grey: {
+            DEFAULT: "hsl(var(--accent-grey))",
+            foreground: "hsl(var(--accent-grey-foreground))",
+            light: "hsl(var(--accent-grey-light))",
+          },
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",

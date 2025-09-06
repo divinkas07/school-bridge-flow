@@ -8,35 +8,63 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Academy Theme - Clean, modern, academic */
+    --background: 248 250 252;
+    --foreground: 215 28% 17%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 255 255 255;
+    --card-foreground: 215 28% 17%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 255 255 255;
+    --popover-foreground: 215 28% 17%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Academic Blue - Primary brand color */
+    --primary: 212 100% 47%;
+    --primary-foreground: 255 255 255;
+    --primary-hover: 212 100% 42%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Academic Green - For assignments */
+    --accent-green: 142 76% 42%;
+    --accent-green-foreground: 255 255 255;
+    --accent-green-light: 142 76% 96%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Academic Grey - For student posts */
+    --accent-grey: 215 16% 47%;
+    --accent-grey-foreground: 255 255 255;
+    --accent-grey-light: 215 16% 96%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Secondary colors */
+    --secondary: 215 27% 96%;
+    --secondary-foreground: 215 28% 17%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --muted: 215 27% 96%;
+    --muted-foreground: 215 16% 46%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --accent: 215 27% 96%;
+    --accent-foreground: 215 28% 17%;
 
-    --radius: 0.5rem;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 255 255 255;
+
+    --border: 215 27% 92%;
+    --input: 215 27% 92%;
+    --ring: 212 100% 47%;
+
+    --radius: 0.75rem;
+
+    /* Custom gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(212 100% 47%), hsl(212 100% 42%));
+    --gradient-hero: linear-gradient(135deg, hsl(212 100% 47%), hsl(212 90% 52%));
+    --gradient-subtle: linear-gradient(180deg, hsl(248 250 252), hsl(241 248 255));
+
+    /* Shadows */
+    --shadow-soft: 0 2px 8px -2px hsl(215 27% 92%);
+    --shadow-medium: 0 4px 16px -4px hsl(215 27% 88%);
+    --shadow-strong: 0 8px 32px -8px hsl(215 27% 84%);
+
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
 
