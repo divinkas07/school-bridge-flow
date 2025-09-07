@@ -58,8 +58,8 @@ const Auth = () => {
         {/* Logo and Header */}
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center">
-            <div className="bg-primary p-3 rounded-2xl">
-              <GraduationCap className="h-8 w-8 text-primary-foreground" />
+            <div className="bg-blue-500 p-3 rounded-2xl">
+              <GraduationCap className="h-8 w-8 text-white" />
             </div>
           </div>
           <div>
@@ -70,7 +70,7 @@ const Auth = () => {
           </div>
         </div>
 
-        <Card className="border-0 shadow-lg">
+        <Card className="border border-gray-200 shadow-lg bg-yellow-50">
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
@@ -105,12 +105,12 @@ const Auth = () => {
                       required
                     />
                   </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Signing in...' : 'Sign In'}
+                    {isLoading ? 'Signing in...' : 'Se connecter'}
                   </Button>
                 </form>
               </CardContent>
