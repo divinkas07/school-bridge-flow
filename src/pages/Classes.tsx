@@ -35,52 +35,20 @@ const Classes = () => {
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Sample classes data
-  const sampleClasses: ClassInfo[] = [
-    {
-      id: '1',
-      name: 'Introduction to Computer Science',
-      code: 'CS 101',
-      description: 'Fundamentals of programming and computer science concepts',
-      teacher: {
-        name: 'Dr. Sarah Johnson',
-      },
-      department: 'Computer Science',
-      studentCount: 45,
-      nextClass: '2024-01-15T10:00:00',
-      unreadCount: 3,
-    },
-    {
-      id: '2',
-      name: 'Data Structures and Algorithms',
-      code: 'CS 201',
-      description: 'Advanced programming concepts and algorithm design',
-      teacher: {
-        name: 'Prof. Michael Chen',
-      },
-      department: 'Computer Science',
-      studentCount: 32,
-      nextClass: '2024-01-15T14:00:00',
-      unreadCount: 1,
-    },
-    {
-      id: '3',
-      name: 'Database Systems',
-      code: 'CS 301',
-      description: 'Design and implementation of database systems',
-      teacher: {
-        name: 'Dr. Emily Davis',
-      },
-      department: 'Computer Science',
-      studentCount: 28,
-      unreadCount: 0,
-    },
-  ];
-
   useEffect(() => {
-    // In a real app, fetch from Supabase
-    setClasses(sampleClasses);
-    setLoading(false);
+    const fetchClasses = async () => {
+      setLoading(true);
+      try {
+        // TODO: Fetch real data from Supabase
+        setClasses([]);
+      } catch (error) {
+        console.error('Error fetching classes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClasses();
   }, []);
 
   const ClassCard = ({ classInfo }: { classInfo: ClassInfo }) => (
@@ -161,7 +129,7 @@ const Classes = () => {
   }
 
   return (
-    <div className="flex-1 bg-background pb-20">
+    <div className="flex-1 bg-background">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent-green/10 px-4 py-6">
         <div className="max-w-md mx-auto">

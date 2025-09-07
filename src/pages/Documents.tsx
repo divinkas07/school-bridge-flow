@@ -44,78 +44,20 @@ const Documents = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
-  // Sample documents data
-  const sampleDocuments: Document[] = [
-    {
-      id: '1',
-      name: 'CS101_Lecture_Notes_Week3.pdf',
-      type: 'pdf',
-      size: 2547892,
-      uploadedBy: {
-        name: 'Dr. Sarah Johnson',
-        role: 'teacher',
-      },
-      className: 'CS 101',
-      uploadedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      description: 'Lecture notes covering algorithms and complexity analysis',
-    },
-    {
-      id: '2',
-      name: 'Assignment_1_Instructions.pdf',
-      type: 'pdf',
-      size: 1234567,
-      uploadedBy: {
-        name: 'Prof. Michael Chen',
-        role: 'teacher',
-      },
-      className: 'CS 201',
-      uploadedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-      description: 'Detailed instructions for the binary search tree assignment',
-    },
-    {
-      id: '3',
-      name: 'Study_Guide_Midterm.docx',
-      type: 'docx',
-      size: 876543,
-      uploadedBy: {
-        name: 'Alex Rodriguez',
-        role: 'student',
-      },
-      className: 'CS 101',
-      uploadedAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-      description: 'Comprehensive study guide for midterm exam preparation',
-    },
-    {
-      id: '4',
-      name: 'Database_Schema_Example.png',
-      type: 'png',
-      size: 456789,
-      uploadedBy: {
-        name: 'Dr. Emily Davis',
-        role: 'teacher',
-      },
-      className: 'CS 301',
-      uploadedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-      description: 'Example database schema for the library management system',
-    },
-    {
-      id: '5',
-      name: 'Project_Presentation.pptx',
-      type: 'pptx',
-      size: 3456789,
-      uploadedBy: {
-        name: 'Emma Wilson',
-        role: 'student',
-      },
-      className: 'CS 201',
-      uploadedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      description: 'Final project presentation on machine learning algorithms',
-    },
-  ];
-
   useEffect(() => {
-    setDocuments(sampleDocuments);
-    setLoading(false);
+    const fetchDocuments = async () => {
+      setLoading(true);
+      try {
+        // TODO: Fetch real data from Supabase
+        setDocuments([]);
+      } catch (error) {
+        console.error('Error fetching documents:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDocuments();
   }, []);
 
   const getFileIcon = (type: string) => {
@@ -234,7 +176,7 @@ const Documents = () => {
   }
 
   return (
-    <div className="flex-1 bg-background pb-20">
+    <div className="flex-1 bg-background">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent-green/10 px-4 py-6">
         <div className="max-w-md mx-auto">

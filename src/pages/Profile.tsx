@@ -49,34 +49,15 @@ const Profile = () => {
   };
 
   const stats = [
-    { label: 'Classes', value: '3', icon: BookOpen },
-    { label: 'Assignments', value: '12', icon: FileText },
-    { label: 'Messages', value: '47', icon: Users },
+    { label: 'Classes', value: '0', icon: BookOpen },
+    { label: 'Assignments', value: '0', icon: FileText },
+    { label: 'Messages', value: '0', icon: Users },
   ];
 
-  const recentActivity = [
-    {
-      type: 'assignment',
-      title: 'Submitted Data Structures Assignment',
-      time: '2 hours ago',
-      class: 'CS 201',
-    },
-    {
-      type: 'announcement',
-      title: 'New announcement in CS 101',
-      time: '5 hours ago',
-      class: 'CS 101',
-    },
-    {
-      type: 'document',
-      title: 'Downloaded lecture notes',
-      time: '1 day ago',
-      class: 'CS 301',
-    },
-  ];
+  const recentActivity: any[] = [];
 
   return (
-    <div className="flex-1 bg-background pb-20">
+    <div className="flex-1 bg-background">
       {/* Profile Header */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent-green/10 px-4 py-8">
         <div className="max-w-md mx-auto text-center">
@@ -234,22 +215,28 @@ const Profile = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground line-clamp-1">
-                        {activity.title}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-muted-foreground">{activity.time}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {activity.class}
-                        </Badge>
+                {recentActivity.length === 0 ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">No recent activity</p>
+                  </div>
+                ) : (
+                  recentActivity.map((activity, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground line-clamp-1">
+                          {activity.title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="text-xs text-muted-foreground">{activity.time}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {activity.class}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>

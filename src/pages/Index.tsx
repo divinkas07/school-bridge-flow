@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Header } from '@/components/layout/Header';
-import { BottomNavigation } from '@/components/layout/BottomNavigation';
-import { FloatingActionButton } from '@/components/layout/FloatingActionButton';
 import Home from './Home';
 
 const Index = () => {
@@ -28,16 +25,7 @@ const Index = () => {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="flex-1 pt-14">
-        <Home />
-      </main>
-      <BottomNavigation />
-      <FloatingActionButton />
-    </div>
-  );
+  return <Home />;
 };
 
 export default Index;

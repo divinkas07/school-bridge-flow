@@ -53,96 +53,17 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Sample chat data
-  const sampleChatRooms: ChatRoom[] = [
-    {
-      id: '1',
-      name: 'CS 101 - General',
-      type: 'class',
-      lastMessage: {
-        content: 'Thanks for the explanation, professor!',
-        sender: 'Alex Rodriguez',
-        timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      },
-      unreadCount: 2,
-      participants: [
-        { name: 'Dr. Sarah Johnson', isOnline: true },
-        { name: 'Alex Rodriguez', isOnline: true },
-        { name: 'Emma Wilson', isOnline: false },
-      ],
-    },
-    {
-      id: '2',
-      name: 'Study Group',
-      type: 'group',
-      lastMessage: {
-        content: 'Let\'s meet at the library tomorrow at 6 PM',
-        sender: 'You',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      },
-      unreadCount: 0,
-      participants: [
-        { name: 'Alex Rodriguez', isOnline: true },
-        { name: 'Emma Wilson', isOnline: true },
-        { name: 'Jake Miller', isOnline: false },
-      ],
-    },
-    {
-      id: '3',
-      name: 'Dr. Sarah Johnson',
-      type: 'direct',
-      lastMessage: {
-        content: 'I\'ll review your assignment and get back to you',
-        sender: 'Dr. Sarah Johnson',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      },
-      unreadCount: 1,
-      participants: [
-        { name: 'Dr. Sarah Johnson', isOnline: false },
-      ],
-    },
-  ];
-
-  const sampleMessages: Message[] = [
-    {
-      id: '1',
-      content: 'Hi everyone! Hope you\'re all doing well with the assignments.',
-      sender: { name: 'Dr. Sarah Johnson' },
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      isOwn: false,
-    },
-    {
-      id: '2',
-      content: 'Yes, professor! The binary tree implementation is challenging but interesting.',
-      sender: { name: 'Alex Rodriguez' },
-      timestamp: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
-      isOwn: false,
-    },
-    {
-      id: '3',
-      content: 'I agree! I found the recursive approach quite elegant.',
-      sender: { name: profile?.full_name || 'You' },
-      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-      isOwn: true,
-    },
-    {
-      id: '4',
-      content: 'Great to hear! Remember, the key is understanding the tree traversal algorithms first.',
-      sender: { name: 'Dr. Sarah Johnson' },
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      isOwn: false,
-    },
-    {
-      id: '5',
-      content: 'Thanks for the explanation, professor!',
-      sender: { name: 'Alex Rodriguez' },
-      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-      isOwn: false,
-    },
-  ];
-
   useEffect(() => {
-    setChatRooms(sampleChatRooms);
+    const fetchChatRooms = async () => {
+      try {
+        // TODO: Fetch real data from Supabase
+        setChatRooms([]);
+      } catch (error) {
+        console.error('Error fetching chat rooms:', error);
+      }
+    };
+
+    fetchChatRooms();
   }, []);
 
   const getChatIcon = (type: ChatRoom['type']) => {
@@ -172,7 +93,7 @@ const Chat = () => {
   };
 
   const ChatRoomList = () => (
-    <div className="flex-1 bg-background pb-20">
+    <div className="flex-1 bg-background">
       {/* Search */}
       <div className="px-4 py-4 bg-card border-b border-border">
         <div className="max-w-md mx-auto">
@@ -197,7 +118,7 @@ const Chat = () => {
               className="cursor-pointer transition-all duration-200 hover:shadow-md hover:bg-muted/20"
               onClick={() => {
                 setSelectedRoom(room);
-                setMessages(sampleMessages);
+                setMessages([]);
               }}
             >
               <CardContent className="p-4">
