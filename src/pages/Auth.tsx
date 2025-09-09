@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,11 +8,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GraduationCap, BookOpen } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<'student' | 'teacher' | null>(null);
+  const [departments, setDepartments] = useState<any[]>([]);
   const { signIn, signUp, user } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Fetch departments for student registration
+    const fetchDepartments = async () => {
+      const { data } = await supabase
+        .from('departments')
+        .select('id, name, code')
+        .order('name');
+      
+      if (data) setDepartments(data);
+    };
+    
+    fetchDepartments();
+  }, []);
 
   // Redirect if already logged in
   React.useEffect(() => {
@@ -48,7 +65,18 @@ const Auth = () => {
     const fullName = formData.get('fullName') as string;
     const role = formData.get('role') as 'student' | 'teacher';
 
-    await signUp(email, password, fullName, role);
+    let studentInfo = undefined;
+    if (role === 'student') {
+      const departmentId = formData.get('departmentId') as string;
+      const semester = parseInt(formData.get('semester') as string);
+      const graduationYear = parseInt(formData.get('graduationYear') as string);
+      
+      if (departmentId && semester && graduationYear) {
+        studentInfo = { departmentId, semester, graduationYear };
+      }
+    }
+
+    await signUp(email, password, fullName, role, studentInfo);
     setIsLoading(false);
   };
 
@@ -155,7 +183,7 @@ const Auth = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">I am a...</Label>
-                    <Select name="role" required>
+                    <Select name="role" required onValueChange={(value) => setSelectedRole(value as 'student' | 'teacher')}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select your role" />
                       </SelectTrigger>
@@ -175,6 +203,61 @@ const Auth = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {selectedRole === 'student' && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="departmentId">Department</Label>
+                        <Select name="departmentId" required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your department" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {departments.map((dept) => (
+                              <SelectItem key={dept.id} value={dept.id}>
+                                {dept.name} ({dept.code})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="semester">Current Semester</Label>
+                        <Select name="semester" required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select semester" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                              <SelectItem key={sem} value={sem.toString()}>
+                                Semester {sem}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="graduationYear">Expected Graduation Year</Label>
+                        <Select name="graduationYear" required>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select graduation year" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 10 }, (_, i) => {
+                              const year = new Date().getFullYear() + i;
+                              return (
+                                <SelectItem key={year} value={year.toString()}>
+                                  {year}
+                                </SelectItem>
+                              );
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  )}
                   <Button 
                     type="submit" 
                     className="w-full" 

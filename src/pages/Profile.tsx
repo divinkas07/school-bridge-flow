@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   User, 
   Mail, 
@@ -36,10 +38,52 @@ const Profile = () => {
     full_name: profile?.full_name || '',
     bio: profile?.bio || '',
     student_id: profile?.student_id || '',
+    department_id: profile?.department_id || '',
+    semester: profile?.semester ? profile.semester.toString() : '',
+    graduation_year: profile?.graduation_year ? profile.graduation_year.toString() : '',
   });
+  const [departments, setDepartments] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (profile) {
+      setEditForm({
+        full_name: profile.full_name || '',
+        bio: profile.bio || '',
+        student_id: profile.student_id || '',
+        department_id: profile.department_id || '',
+        semester: profile.semester ? profile.semester.toString() : '',
+        graduation_year: profile.graduation_year ? profile.graduation_year.toString() : '',
+      });
+    }
+    
+    // Fetch departments
+    const fetchDepartments = async () => {
+      const { data } = await supabase
+        .from('departments')
+        .select('id, name, code')
+        .order('name');
+      
+      if (data) setDepartments(data);
+    };
+    
+    fetchDepartments();
+  }, [profile]);
 
   const handleSave = async () => {
-    await updateProfile(editForm);
+    const updates: any = {
+      full_name: editForm.full_name,
+      bio: editForm.bio,
+      student_id: editForm.student_id,
+    };
+
+    // Add student-specific fields
+    if (profile?.role === 'student') {
+      if (editForm.department_id) updates.department_id = editForm.department_id;
+      if (editForm.semester) updates.semester = parseInt(editForm.semester);
+      if (editForm.graduation_year) updates.graduation_year = parseInt(editForm.graduation_year);
+    }
+
+    await updateProfile(updates);
     setIsEditing(false);
   };
 
@@ -167,20 +211,100 @@ const Profile = () => {
               </div>
 
               {profile?.role === 'student' && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Student ID</Label>
-                  {isEditing ? (
-                    <Input
-                      value={editForm.student_id}
-                      onChange={(e) => setEditForm(prev => ({ ...prev, student_id: e.target.value }))}
-                      placeholder="Enter your student ID"
-                    />
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      {profile?.student_id || 'Not provided'}
-                    </p>
-                  )}
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Student ID</Label>
+                    {isEditing ? (
+                      <Input
+                        value={editForm.student_id}
+                        onChange={(e) => setEditForm(prev => ({ ...prev, student_id: e.target.value }))}
+                        placeholder="Enter your student ID"
+                      />
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {profile?.student_id || 'Not provided'}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Department</Label>
+                    {isEditing ? (
+                      <Select 
+                        value={editForm.department_id} 
+                        onValueChange={(value) => setEditForm(prev => ({ ...prev, department_id: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {departments.map((dept) => (
+                            <SelectItem key={dept.id} value={dept.id}>
+                              {dept.name} ({dept.code})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {departments.find(d => d.id === profile?.department_id)?.name || 'Not provided'}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Current Semester</Label>
+                    {isEditing ? (
+                      <Select 
+                        value={editForm.semester} 
+                        onValueChange={(value) => setEditForm(prev => ({ ...prev, semester: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select semester" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                            <SelectItem key={sem} value={sem.toString()}>
+                              Semester {sem}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {profile?.semester ? `Semester ${profile.semester}` : 'Not provided'}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Expected Graduation Year</Label>
+                    {isEditing ? (
+                      <Select 
+                        value={editForm.graduation_year} 
+                        onValueChange={(value) => setEditForm(prev => ({ ...prev, graduation_year: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select graduation year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 10 }, (_, i) => {
+                            const year = new Date().getFullYear() + i;
+                            return (
+                              <SelectItem key={year} value={year.toString()}>
+                                {year}
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {profile?.graduation_year || 'Not provided'}
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>

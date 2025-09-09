@@ -12,6 +12,8 @@ interface Profile {
   role: UserRole;
   student_id?: string;
   department_id?: string;
+  semester?: number;
+  graduation_year?: number;
   avatar_url?: string;
   bio?: string;
 }
@@ -21,7 +23,7 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role: UserRole) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, role: UserRole, studentInfo?: { departmentId: string; semester: number; graduationYear: number }) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
@@ -93,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: UserRole) => {
+  const signUp = async (email: string, password: string, fullName: string, role: UserRole, studentInfo?: { departmentId: string; semester: number; graduationYear: number }) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -103,6 +105,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             full_name: fullName,
             role: role,
+            ...(studentInfo && {
+              department_id: studentInfo.departmentId,
+              semester: studentInfo.semester,
+              graduation_year: studentInfo.graduationYear,
+            }),
           },
         },
       });

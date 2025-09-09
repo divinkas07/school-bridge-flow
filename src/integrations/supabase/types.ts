@@ -450,8 +450,10 @@ export type Database = {
           created_at: string | null
           department_id: string | null
           full_name: string
+          graduation_year: number | null
           id: string
           role: Database["public"]["Enums"]["user_role"]
+          semester: number | null
           student_id: string | null
           updated_at: string | null
           user_id: string | null
@@ -462,8 +464,10 @@ export type Database = {
           created_at?: string | null
           department_id?: string | null
           full_name: string
+          graduation_year?: number | null
           id?: string
           role: Database["public"]["Enums"]["user_role"]
+          semester?: number | null
           student_id?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -474,8 +478,10 @@ export type Database = {
           created_at?: string | null
           department_id?: string | null
           full_name?: string
+          graduation_year?: number | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"]
+          semester?: number | null
           student_id?: string | null
           updated_at?: string | null
           user_id?: string | null
