@@ -3,11 +3,13 @@ import { Plus, MessageSquare, Megaphone, ClipboardList, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useCreateModals } from '@/hooks/useCreateModals';
 
 export const FloatingActionButton = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { setPostModalOpen, setAnnouncementModalOpen, setAssignmentModalOpen } = useCreateModals();
 
   const actions = [
     {
@@ -16,7 +18,7 @@ export const FloatingActionButton = () => {
       color: 'bg-accent-grey hover:bg-accent-grey/90',
       onClick: () => {
         setIsOpen(false);
-        // TODO: Open new post modal
+        setPostModalOpen(true);
       },
     },
     ...(profile?.role === 'teacher' ? [
@@ -26,7 +28,7 @@ export const FloatingActionButton = () => {
         color: 'bg-primary hover:bg-primary-hover',
         onClick: () => {
           setIsOpen(false);
-          // TODO: Open new announcement modal
+          setAnnouncementModalOpen(true);
         },
       },
       {
@@ -35,7 +37,7 @@ export const FloatingActionButton = () => {
         color: 'bg-accent-green hover:bg-accent-green/90',
         onClick: () => {
           setIsOpen(false);
-          // TODO: Open new assignment modal
+          setAssignmentModalOpen(true);
         },
       },
     ] : []),
