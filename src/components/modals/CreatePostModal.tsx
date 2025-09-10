@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 const postSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   classId: z.string().min(1, 'Please select a class'),
+  visibility: z.enum(['class', 'all_users']).default('class'),
 });
 
 type PostFormData = z.infer<typeof postSchema>;
@@ -34,6 +35,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
     defaultValues: {
       content: '',
       classId: '',
+      visibility: 'class' as const,
     },
   });
 
@@ -70,6 +72,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
           content: data.content,
           class_id: data.classId,
           author_id: profile.user_id,
+          type: data.visibility,
         });
 
       if (error) throw error;
@@ -130,6 +133,27 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
                       {...field}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="visibility"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Visibility</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select visibility" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="class">Class only</SelectItem>
+                      <SelectItem value="all_users">All users</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

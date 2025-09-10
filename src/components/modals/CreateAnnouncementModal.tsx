@@ -18,6 +18,7 @@ const announcementSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   classId: z.string().min(1, 'Please select a class'),
   isUrgent: z.boolean().default(false),
+  visibility: z.enum(['class', 'all_users']).default('class'),
 });
 
 type AnnouncementFormData = z.infer<typeof announcementSchema>;
@@ -39,6 +40,7 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
       content: '',
       classId: '',
       isUrgent: false,
+      visibility: 'class' as const,
     },
   });
 
@@ -77,7 +79,7 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
           class_id: data.classId,
           author_id: profile.user_id,
           is_urgent: data.isUrgent,
-          visibility: 'class',
+          visibility: data.visibility,
         });
 
       if (error) throw error;
@@ -172,6 +174,27 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="visibility"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Visibility</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select visibility" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="class">Class only</SelectItem>
+                      <SelectItem value="all_users">All users</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
                 </FormItem>
               )}
             />
