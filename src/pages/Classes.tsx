@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,10 +38,95 @@ const Classes = () => {
 
   useEffect(() => {
     const fetchClasses = async () => {
+      if (!profile?.user_id) return;
+      
       setLoading(true);
       try {
-        // TODO: Fetch real data from Supabase
-        setClasses([]);
+        let classesData = [];
+
+        if (profile.role === 'student') {
+          // Récupérer les classes où l'étudiant est inscrit
+          const { data: enrollments, error } = await supabase
+            .from('class_enrollments')
+            .select(`
+              classes (
+                id,
+                name,
+                code,
+                description,
+                teacher_id,
+                departments (
+                  name,
+                  code
+                )
+              )
+            `)
+            .eq('user_id', profile.user_id);
+
+          if (error) throw error;
+
+          classesData = enrollments?.map(enrollment => enrollment.classes).filter(Boolean) || [];
+        } else {
+          // Pour les enseignants, récupérer les classes qu'ils enseignent
+          const { data, error } = await supabase
+            .from('classes')
+            .select(`
+              id,
+              name,
+              code,
+              description,
+              teacher_id,
+              departments (
+                name,
+                code
+              )
+            `)
+            .eq('teacher_id', profile.user_id);
+
+          if (error) throw error;
+          classesData = data || [];
+        }
+
+        // Pour chaque classe, récupérer le nombre d'étudiants et les informations de l'enseignant
+        const enrichedClasses = await Promise.all(
+          classesData.map(async (classData: any) => {
+            // Compter les étudiants
+            const { count: studentCount } = await supabase
+              .from('class_enrollments')
+              .select('*', { count: 'exact', head: true })
+              .eq('class_id', classData.id);
+
+            // Récupérer les informations de l'enseignant
+            let teacherInfo = { name: 'Auto-assigné', avatar: undefined };
+            if (classData.teacher_id) {
+              const { data: teacherProfile } = await supabase
+                .from('profiles')
+                .select('full_name, avatar_url')
+                .eq('user_id', classData.teacher_id)
+                .maybeSingle();
+              
+              if (teacherProfile) {
+                teacherInfo = {
+                  name: teacherProfile.full_name,
+                  avatar: teacherProfile.avatar_url
+                };
+              }
+            }
+
+            return {
+              id: classData.id,
+              name: classData.name,
+              code: classData.code,
+              description: classData.description || 'Aucune description',
+              teacher: teacherInfo,
+              department: classData.departments?.name || 'Non défini',
+              studentCount: studentCount || 0,
+              unreadCount: 0 // TODO: Implémenter le comptage des messages non lus
+            };
+          })
+        );
+
+        setClasses(enrichedClasses);
       } catch (error) {
         console.error('Error fetching classes:', error);
       } finally {
@@ -49,7 +135,7 @@ const Classes = () => {
     };
 
     fetchClasses();
-  }, []);
+  }, [profile]);
 
   const ClassCard = ({ classInfo }: { classInfo: ClassInfo }) => (
     <Card className="cursor-pointer transition-all duration-200 hover:shadow-md hover:bg-muted/20">
