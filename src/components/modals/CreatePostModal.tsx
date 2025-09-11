@@ -15,6 +15,8 @@ import { Upload, X, FileText, Image } from 'lucide-react';
 
 const postSchema = z.object({
   content: z.string().min(1, 'Content is required'),
+  departmentId: z.string().min(1, 'Please select a department'),
+  semester: z.string().min(1, 'Please select a semester'),
   classId: z.string().min(1, 'Please select a class'),
   visibility: z.enum(['class', 'all_users']).default('class'),
 });
@@ -28,6 +30,7 @@ interface CreatePostModalProps {
 
 export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenChange }) => {
   const { profile } = useAuth();
+  const [departments, setDepartments] = React.useState<any[]>([]);
   const [classes, setClasses] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
@@ -37,6 +40,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
     resolver: zodResolver(postSchema),
     defaultValues: {
       content: '',
+      departmentId: '',
+      semester: '',
       classId: '',
       visibility: 'class' as const,
     },
@@ -88,49 +93,61 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Watch for department and semester changes to fetch classes
+  const watchedDepartmentId = form.watch('departmentId');
+  const watchedSemester = form.watch('semester');
+
   React.useEffect(() => {
-    const fetchClasses = async () => {
-      if (!profile?.user_id) return;
+    const fetchDepartments = async () => {
+      if (!profile?.user_id || profile.role !== 'teacher') return;
       
       try {
-        let classesData = [];
+        const { data, error } = await supabase
+          .from('departments')
+          .select('id, name, code')
+          .order('name');
 
-        if (profile.role === 'student') {
-          // Pour les étudiants, récupérer les classes où ils sont inscrits
-          const { data: enrollments, error } = await supabase
-            .from('class_enrollments')
-            .select(`
-              classes (
-                id,
-                name,
-                code
-              )
-            `)
-            .eq('user_id', profile.user_id);
-
-          if (error) throw error;
-          classesData = enrollments?.map(enrollment => enrollment.classes).filter(Boolean) || [];
-        } else {
-          // Pour les enseignants, récupérer les classes qu'ils enseignent
-          const { data, error } = await supabase
-            .from('classes')
-            .select('id, name, code')
-            .eq('teacher_id', profile.user_id);
-
-          if (error) throw error;
-          classesData = data || [];
-        }
-
-        setClasses(classesData);
+        if (error) throw error;
+        setDepartments(data || []);
       } catch (error) {
-        console.error('Error fetching classes:', error);
+        console.error('Error fetching departments:', error);
       }
     };
 
     if (open) {
-      fetchClasses();
+      fetchDepartments();
     }
   }, [open, profile?.user_id, profile?.role]);
+
+  React.useEffect(() => {
+    const fetchClasses = async () => {
+      if (!profile?.user_id || profile.role !== 'teacher' || !watchedDepartmentId || !watchedSemester) {
+        setClasses([]);
+        return;
+      }
+      
+      try {
+        // Fetch classes for the selected department and semester
+        const { data, error } = await supabase
+          .from('classes')
+          .select('id, name, code')
+          .eq('department_id', watchedDepartmentId)
+          .like('name', `% - S${watchedSemester}`)
+          .eq('teacher_id', profile.user_id);
+
+        if (error) throw error;
+        setClasses(data || []);
+        
+        // Reset class selection when department or semester changes
+        form.setValue('classId', '');
+      } catch (error) {
+        console.error('Error fetching classes:', error);
+        setClasses([]);
+      }
+    };
+
+    fetchClasses();
+  }, [watchedDepartmentId, watchedSemester, profile?.user_id, profile?.role, form]);
 
   const onSubmit = async (data: PostFormData) => {
     if (!profile?.user_id) return;
@@ -177,7 +194,15 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
     if (!open) {
       // Reset uploaded files when modal closes
       setUploadedFiles([]);
-      form.reset();
+      setClasses([]);
+      setDepartments([]);
+      form.reset({
+        content: '',
+        departmentId: '',
+        semester: '',
+        classId: '',
+        visibility: 'class' as const,
+      });
     }
   }, [open, form]);
 
@@ -191,14 +216,70 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
+              name="departmentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a department" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {departments.map((dept) => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          {dept.code} - {dept.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="semester"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Semester</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a semester" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 7, 8].map((sem) => (
+                        <SelectItem key={sem} value={sem.toString()}>
+                          Semester {sem}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="classId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Class</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a class" />
+                      <SelectTrigger disabled={!watchedDepartmentId || !watchedSemester}>
+                        <SelectValue placeholder={
+                          !watchedDepartmentId || !watchedSemester 
+                            ? "Select department and semester first" 
+                            : classes.length === 0 
+                            ? "No classes found" 
+                            : "Select a class"
+                        } />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
