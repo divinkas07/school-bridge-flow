@@ -16,6 +16,16 @@ import { Upload, X, FileText, Image } from 'lucide-react';
 const postSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   visibility: z.enum(['class', 'all_users']).default('all_users'),
+  department_id: z.string().optional(),
+  semester: z.string().optional(),
+}).refine((data) => {
+  if (data.visibility === 'class') {
+    return data.department_id && data.semester;
+  }
+  return true;
+}, {
+  message: 'Department and semester are required when visibility is class only',
+  path: ['department_id'],
 });
 
 type PostFormData = z.infer<typeof postSchema>;
@@ -30,14 +40,48 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
   const [loading, setLoading] = React.useState(false);
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
   const [fileUploading, setFileUploading] = React.useState(false);
+  const [departments, setDepartments] = React.useState<Array<{id: string, name: string}>>([]);
+  const [loadingDepartments, setLoadingDepartments] = React.useState(false);
 
   const form = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
     defaultValues: {
       content: '',
       visibility: 'all_users' as const,
+      department_id: '',
+      semester: '',
     },
   });
+
+  const watchVisibility = form.watch('visibility');
+
+  // Load departments when modal opens
+  React.useEffect(() => {
+    const loadDepartments = async () => {
+      if (open && watchVisibility === 'class') {
+        setLoadingDepartments(true);
+        try {
+          const { data, error } = await supabase
+            .from('departments')
+            .select('id, name');
+          
+          if (error) {
+            console.error('Error loading departments:', error);
+            toast.error('Failed to load departments');
+          } else {
+            setDepartments(data || []);
+          }
+        } catch (error) {
+          console.error('Error loading departments:', error);
+          toast.error('Failed to load departments');
+        } finally {
+          setLoadingDepartments(false);
+        }
+      }
+    };
+    
+    loadDepartments();
+  }, [open, watchVisibility]);
 
   const uploadFile = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
@@ -101,15 +145,22 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
         setFileUploading(false);
       }
 
+      const postData: any = {
+        content: data.content,
+        author_id: profile.user_id,
+        type: data.visibility,
+        image_urls: imageUrls.length > 0 ? imageUrls : null,
+      };
+
+      // Add department_id and semester if targeting a specific class
+      if (data.visibility === 'class' && data.department_id && data.semester) {
+        postData.department_id = data.department_id;
+        postData.semester = parseInt(data.semester);
+      }
+
       const { error } = await supabase
         .from('posts')
-        .insert({
-          content: data.content,
-          class_id: null, // No specific class, post is general
-          author_id: profile.user_id,
-          type: data.visibility,
-          image_urls: imageUrls.length > 0 ? imageUrls : null,
-        });
+        .insert(postData);
 
       if (error) throw error;
 
@@ -133,6 +184,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
       form.reset({
         content: '',
         visibility: 'all_users' as const,
+        department_id: '',
+        semester: '',
       });
     }
   }, [open, form]);
@@ -183,6 +236,64 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
                 </FormItem>
               )}
             />
+            
+            {/* Conditional fields for class visibility */}
+            {watchVisibility === 'class' && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="department_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Department</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select department" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {loadingDepartments ? (
+                            <SelectItem value="" disabled>Loading departments...</SelectItem>
+                          ) : (
+                            departments.map((dept) => (
+                              <SelectItem key={dept.id} value={dept.id}>
+                                {dept.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="semester"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Semester</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select semester" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {[1, 2, 3, 4, 5, 6].map((sem) => (
+                            <SelectItem key={sem} value={sem.toString()}>
+                              Semestre {sem}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
             
             <div className="space-y-2">
               <FormLabel>Files (Images or PDFs)</FormLabel>
