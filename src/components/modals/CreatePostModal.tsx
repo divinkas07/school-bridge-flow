@@ -16,16 +16,15 @@ import { Upload, X, FileText, Image } from 'lucide-react';
 const postSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   visibility: z.enum(['class', 'all_users']).default('all_users'),
-  department_id: z.string().optional(),
-  semester: z.string().optional(),
+  class_id: z.string().optional(),
 }).refine((data) => {
   if (data.visibility === 'class') {
-    return data.department_id && data.semester;
+    return data.class_id;
   }
   return true;
 }, {
-  message: 'Department and semester are required when visibility is class only',
-  path: ['department_id'],
+  message: 'Class selection is required when visibility is class only',
+  path: ['class_id'],
 });
 
 type PostFormData = z.infer<typeof postSchema>;
@@ -40,47 +39,46 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
   const [loading, setLoading] = React.useState(false);
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
   const [fileUploading, setFileUploading] = React.useState(false);
-  const [departments, setDepartments] = React.useState<Array<{id: string, name: string}>>([]);
-  const [loadingDepartments, setLoadingDepartments] = React.useState(false);
+  const [classes, setClasses] = React.useState<Array<{id: string, name: string, code: string}>>([]);
+  const [loadingClasses, setLoadingClasses] = React.useState(false);
 
   const form = useForm<PostFormData>({
     resolver: zodResolver(postSchema),
     defaultValues: {
       content: '',
       visibility: 'all_users' as const,
-      department_id: '',
-      semester: '',
+      class_id: '',
     },
   });
 
   const watchVisibility = form.watch('visibility');
 
-  // Load departments when modal opens
+  // Load classes when modal opens
   React.useEffect(() => {
-    const loadDepartments = async () => {
+    const loadClasses = async () => {
       if (open && watchVisibility === 'class') {
-        setLoadingDepartments(true);
+        setLoadingClasses(true);
         try {
           const { data, error } = await supabase
-            .from('departments')
-            .select('id, name');
+            .from('classes')
+            .select('id, name, code');
           
           if (error) {
-            console.error('Error loading departments:', error);
-            toast.error('Failed to load departments');
+            console.error('Error loading classes:', error);
+            toast.error('Failed to load classes');
           } else {
-            setDepartments(data || []);
+            setClasses(data || []);
           }
         } catch (error) {
-          console.error('Error loading departments:', error);
-          toast.error('Failed to load departments');
+          console.error('Error loading classes:', error);
+          toast.error('Failed to load classes');
         } finally {
-          setLoadingDepartments(false);
+          setLoadingClasses(false);
         }
       }
     };
     
-    loadDepartments();
+    loadClasses();
   }, [open, watchVisibility]);
 
   const uploadFile = async (file: File): Promise<string> => {
@@ -152,10 +150,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
         image_urls: imageUrls.length > 0 ? imageUrls : null,
       };
 
-      // Add department_id and semester if targeting a specific class
-      if (data.visibility === 'class' && data.department_id && data.semester) {
-        postData.department_id = data.department_id;
-        postData.semester = parseInt(data.semester);
+      // Add class_id if targeting a specific class
+      if (data.visibility === 'class' && data.class_id) {
+        postData.class_id = data.class_id;
       }
 
       const { error } = await supabase
@@ -184,8 +181,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
       form.reset({
         content: '',
         visibility: 'all_users' as const,
-        department_id: '',
-        semester: '',
+        class_id: '',
       });
     }
   }, [open, form]);
@@ -239,60 +235,34 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
             
             {/* Conditional fields for class visibility */}
             {watchVisibility === 'class' && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="department_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Department</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select department" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {loadingDepartments ? (
-                            <div className="p-2 text-sm text-muted-foreground">Loading departments...</div>
-                          ) : (
-                            departments.map((dept) => (
-                              <SelectItem key={dept.id} value={dept.id}>
-                                {dept.name}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="semester"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Semester</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select semester" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {[1, 2, 3, 4, 5, 6].map((sem) => (
-                            <SelectItem key={sem} value={sem.toString()}>
-                              Semestre {sem}
+              <FormField
+                control={form.control}
+                name="class_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Class</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select class" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {loadingClasses ? (
+                          <div className="p-2 text-sm text-muted-foreground">Loading classes...</div>
+                        ) : (
+                          classes.map((cls) => (
+                            <SelectItem key={cls.id} value={cls.id}>
+                              {cls.name} ({cls.code})
                             </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             )}
             
             <div className="space-y-2">
