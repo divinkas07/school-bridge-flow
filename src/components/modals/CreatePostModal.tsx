@@ -254,7 +254,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
                         </FormControl>
                         <SelectContent>
                           {loadingDepartments ? (
-                            <SelectItem value="" disabled>Loading departments...</SelectItem>
+                            <div className="p-2 text-sm text-muted-foreground">Loading departments...</div>
                           ) : (
                             departments.map((dept) => (
                               <SelectItem key={dept.id} value={dept.id}>
