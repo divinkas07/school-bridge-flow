@@ -12,9 +12,11 @@ import {
   FileText, 
   MessageSquare,
   ChevronRight,
-  GraduationCap
+  GraduationCap,
+  Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CreateClassModal } from '@/components/modals/CreateClassModal';
 
 interface ClassInfo {
   id: string;
@@ -35,6 +37,7 @@ const Classes = () => {
   const { profile } = useAuth();
   const [classes, setClasses] = useState<ClassInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     const fetchClasses = async () => {
@@ -137,6 +140,101 @@ const Classes = () => {
     fetchClasses();
   }, [profile]);
 
+  const handleRefreshClasses = () => {
+    if (profile?.user_id) {
+      const fetchClasses = async () => {
+        setLoading(true);
+        try {
+          let classesData = [];
+
+          if (profile.role === 'student') {
+            const { data: enrollments, error } = await supabase
+              .from('class_enrollments')
+              .select(`
+                classes (
+                  id,
+                  name,
+                  code,
+                  description,
+                  teacher_id,
+                  departments (
+                    name,
+                    code
+                  )
+                )
+              `)
+              .eq('user_id', profile.user_id);
+
+            if (error) throw error;
+            classesData = enrollments?.map(enrollment => enrollment.classes).filter(Boolean) || [];
+          } else {
+            const { data, error } = await supabase
+              .from('classes')
+              .select(`
+                id,
+                name,
+                code,
+                description,
+                teacher_id,
+                departments (
+                  name,
+                  code
+                )
+              `)
+              .eq('teacher_id', profile.user_id);
+
+            if (error) throw error;
+            classesData = data || [];
+          }
+
+          const enrichedClasses = await Promise.all(
+            classesData.map(async (classData: any) => {
+              const { count: studentCount } = await supabase
+                .from('class_enrollments')
+                .select('*', { count: 'exact', head: true })
+                .eq('class_id', classData.id);
+
+              let teacherInfo = { name: 'Auto-assigné', avatar: undefined };
+              if (classData.teacher_id) {
+                const { data: teacherProfile } = await supabase
+                  .from('profiles')
+                  .select('full_name, avatar_url')
+                  .eq('user_id', classData.teacher_id)
+                  .maybeSingle();
+                
+                if (teacherProfile) {
+                  teacherInfo = {
+                    name: teacherProfile.full_name,
+                    avatar: teacherProfile.avatar_url
+                  };
+                }
+              }
+
+              return {
+                id: classData.id,
+                name: classData.name,
+                code: classData.code,
+                description: classData.description || 'Aucune description',
+                teacher: teacherInfo,
+                department: classData.departments?.name || 'Non défini',
+                studentCount: studentCount || 0,
+                unreadCount: 0
+              };
+            })
+          );
+
+          setClasses(enrichedClasses);
+        } catch (error) {
+          console.error('Error fetching classes:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchClasses();
+    }
+  };
+
   const ClassCard = ({ classInfo }: { classInfo: ClassInfo }) => (
     <Card className="cursor-pointer transition-all duration-200 hover:shadow-md hover:bg-muted/20">
       <CardHeader className="pb-3">
@@ -219,9 +317,17 @@ const Classes = () => {
       {/* Header Section */}
       <div className="bg-gradient-to-r from-primary/10 via-primary/5 to-accent-green/10 px-4 py-6">
         <div className="max-w-md mx-auto">
-          <h2 className="text-lg font-semibold text-foreground mb-1">
-            {profile?.role === 'teacher' ? 'Your Classes' : 'Enrolled Classes'}
-          </h2>
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-semibold text-foreground">
+              {profile?.role === 'teacher' ? 'Your Classes' : 'Enrolled Classes'}
+            </h2>
+            {profile?.role === 'teacher' && classes.length > 0 && (
+              <Button size="sm" onClick={() => setShowCreateModal(true)}>
+                <Plus className="h-4 w-4 mr-1" />
+                Create Class
+              </Button>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground">
             {profile?.role === 'teacher' 
               ? 'Manage your teaching schedule and connect with students'
@@ -244,7 +350,8 @@ const Classes = () => {
                 }
               </div>
               {profile?.role === 'teacher' && (
-                <Button className="mt-4">
+                <Button className="mt-4" onClick={() => setShowCreateModal(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
                   Create Your First Class
                 </Button>
               )}
@@ -256,6 +363,12 @@ const Classes = () => {
           )}
         </div>
       </div>
+
+      <CreateClassModal 
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onSuccess={handleRefreshClasses}
+      />
     </div>
   );
 };

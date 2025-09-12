@@ -262,28 +262,43 @@ export type Database = {
         Row: {
           code: string
           created_at: string | null
+          credits: number | null
           department_id: string | null
+          departments: string[] | null
           description: string | null
+          duration_hours: number | null
           id: string
+          max_students: number | null
           name: string
+          semesters: number[] | null
           teacher_id: string | null
         }
         Insert: {
           code: string
           created_at?: string | null
+          credits?: number | null
           department_id?: string | null
+          departments?: string[] | null
           description?: string | null
+          duration_hours?: number | null
           id?: string
+          max_students?: number | null
           name: string
+          semesters?: number[] | null
           teacher_id?: string | null
         }
         Update: {
           code?: string
           created_at?: string | null
+          credits?: number | null
           department_id?: string | null
+          departments?: string[] | null
           description?: string | null
+          duration_hours?: number | null
           id?: string
+          max_students?: number | null
           name?: string
+          semesters?: number[] | null
           teacher_id?: string | null
         }
         Relationships: [
