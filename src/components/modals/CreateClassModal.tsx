@@ -109,6 +109,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
         .insert(classData);
 
       if (error) throw error;
+     
 
       toast.success('Class created successfully!');
       form.reset();

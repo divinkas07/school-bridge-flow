@@ -1,6 +1,7 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
 import { Bell, Search, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,6 +17,8 @@ const getPageTitle = (pathname: string) => {
       return 'Messages';
     case '/documents':
       return 'Documents';
+    case '/notifications':
+      return 'Notifications';
     case '/profile':
       return 'Profile';
     default:
@@ -26,6 +29,8 @@ const getPageTitle = (pathname: string) => {
 export const Header = () => {
   const location = useLocation();
   const { profile } = useAuth();
+  const { unreadCount } = useNotifications();
+  const navigate = useNavigate();
   const title = getPageTitle(location.pathname);
 
   return (
@@ -36,23 +41,32 @@ export const Header = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            onClick={() => navigate("/notifications")}
+          >
             <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center p-0">
-              3
-            </Badge>
+            {unreadCount > 0 && (
+              <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center p-0">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Badge>
+            )}
           </Button>
           
           <Button variant="ghost" size="icon">
             <Search className="h-5 w-5" />
           </Button>
 
-          <Avatar className="h-8 w-8">
+          <button  onClick={() => navigate("/profile")}>
+            <Avatar className="h-8 w-8" >
             <AvatarImage src={profile?.avatar_url} />
             <AvatarFallback className="bg-primary text-primary-foreground text-sm">
               {profile?.full_name?.substring(0, 2).toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
+          </button> 
         </div>
       </div>
     </header>
