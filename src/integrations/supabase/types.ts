@@ -14,9 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
+      students: {
+        Row: {
+          id: string
+          user_id: string
+          full_name: string
+          student_id: string | null
+          department_id: string | null
+          semester: number | null
+          graduation_year: number | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          full_name: string
+          student_id?: string | null
+          department_id?: string | null
+          semester?: number | null
+          graduation_year?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          full_name?: string
+          student_id?: string | null
+          department_id?: string | null
+          semester?: number | null
+          graduation_year?: number | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      teachers: {
+        Row: {
+          id: string
+          user_id: string
+          full_name: string
+          employee_id: string | null
+          department_id: string | null
+          title: string | null
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          full_name: string
+          employee_id?: string | null
+          department_id?: string | null
+          title?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          full_name?: string
+          employee_id?: string | null
+          department_id?: string | null
+          title?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teachers_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teachers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      users: {
+        Row: {
+          id: string
+          email: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       announcements: {
         Row: {
-          author_id: string | null
+          teacher_id: string | null
           class_id: string | null
           content: string
           created_at: string | null
@@ -28,7 +157,7 @@ export type Database = {
           visibility: string | null
         }
         Insert: {
-          author_id?: string | null
+          teacher_id?: string | null
           class_id?: string | null
           content: string
           created_at?: string | null
@@ -40,7 +169,7 @@ export type Database = {
           visibility?: string | null
         }
         Update: {
-          author_id?: string | null
+          teacher_id?: string | null
           class_id?: string | null
           content?: string
           created_at?: string | null
@@ -64,6 +193,13 @@ export type Database = {
             columns: ["department_id"]
             isOneToOne: false
             referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
             referencedColumns: ["id"]
           },
         ]

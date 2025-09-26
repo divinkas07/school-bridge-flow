@@ -49,7 +49,7 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({ op
   React.useEffect(() => {
     const fetchClasses = async () => {
       if (!profile?.user_id) return;
-      
+
       try {
         const { data, error } = await supabase
           .from('classes')
@@ -97,6 +97,11 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({ op
       setLoading(false);
     }
   };
+
+  // Only teachers can create assignments
+  if (profile?.role !== 'teacher') {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

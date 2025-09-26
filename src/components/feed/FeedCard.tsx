@@ -119,9 +119,7 @@ export const FeedCard: React.FC<FeedCardProps> = ({ item, onClick }) => {
                   {config.badge}
                 </Badge>
                 {item.isUrgent && (
-                  <Badge variant="destructive" className="text-xs">
-                    Urgent
-                  </Badge>
+                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" title="Urgent - expires in 48 hours" />
                 )}
               </div>
               <h3 className="font-medium text-sm text-foreground line-clamp-2">

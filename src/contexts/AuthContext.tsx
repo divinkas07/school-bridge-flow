@@ -5,6 +5,33 @@ import { useToast } from '@/components/ui/use-toast';
 
 type UserRole = 'student' | 'teacher';
 
+interface StudentProfile {
+  id: string;
+  user_id: string;
+  full_name: string;
+  student_id?: string;
+  department_id?: string;
+  semester?: number;
+  graduation_year?: number;
+  avatar_url?: string;
+  bio?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface TeacherProfile {
+  id: string;
+  user_id: string;
+  full_name: string;
+  employee_id?: string;
+  department_id?: string;
+  title?: string;
+  avatar_url?: string;
+  bio?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface Profile {
   id: string;
   user_id: string;
@@ -14,6 +41,8 @@ interface Profile {
   department_id?: string;
   semester?: number;
   graduation_year?: number;
+  employee_id?: string;
+  title?: string;
   avatar_url?: string;
   bio?: string;
 }
@@ -54,15 +83,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user profile
+          // Fetch user profile from students or teachers table
           setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
+            // First try to get student profile
+            const { data: studentData } = await supabase
+              .from('students')
               .select('*')
               .eq('user_id', session.user.id)
               .single();
-            
-            setProfile(profileData);
+
+            if (studentData) {
+              setProfile({
+                ...studentData,
+                role: 'student' as UserRole,
+              });
+              setLoading(false);
+              return;
+            }
+
+            // If not a student, try teacher profile
+            const { data: teacherData } = await supabase
+              .from('teachers')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+
+            if (teacherData) {
+              setProfile({
+                ...teacherData,
+                role: 'teacher' as UserRole,
+              });
+              setLoading(false);
+              return;
+            }
+
+            // If neither, set profile to null
+            setProfile(null);
             setLoading(false);
           }, 0);
         } else {
@@ -78,13 +134,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        // First try to get student profile
         supabase
-          .from('profiles')
+          .from('students')
           .select('*')
           .eq('user_id', session.user.id)
           .single()
-          .then(({ data: profileData }) => {
-            setProfile(profileData);
+          .then(async ({ data: studentData, error: studentError }) => {
+            if (studentData && !studentError) {
+              setProfile({
+                ...studentData,
+                role: 'student' as UserRole,
+              });
+              setLoading(false);
+              return;
+            }
+
+            // If not a student, try teacher profile
+            const { data: teacherData, error: teacherError } = await supabase
+              .from('teachers')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+
+            if (teacherData && !teacherError) {
+              setProfile({
+                ...teacherData,
+                role: 'teacher' as UserRole,
+              });
+              setLoading(false);
+              return;
+            }
+
+            // If neither, set profile to null
+            setProfile(null);
             setLoading(false);
           });
       } else {
@@ -165,10 +248,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateProfile = async (updates: Partial<Profile>) => {
-    if (!user) return { error: new Error('No user logged in') };
+    if (!user || !profile) return { error: new Error('No user logged in') };
 
+    const table = profile.role === 'student' ? 'students' : 'teachers';
     const { error } = await supabase
-      .from('profiles')
+      .from(table)
       .update(updates)
       .eq('user_id', user.id);
 

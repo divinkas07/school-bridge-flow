@@ -16,9 +16,21 @@ import { toast } from 'sonner';
 const announcementSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
-  classId: z.string().min(1, 'Please select a class'),
   isUrgent: z.boolean().default(false),
-  visibility: z.enum(['class', 'all_users']).default('class'),
+  visibility: z.enum(['public', 'department', 'class']).default('public'),
+  classId: z.string().optional(),
+  departmentId: z.string().optional(),
+}).refine((data) => {
+  if (data.visibility === 'class' && !data.classId) {
+    return false;
+  }
+  if (data.visibility === 'department' && !data.departmentId) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Please select the required field based on visibility',
+  path: ['classId'],
 });
 
 type AnnouncementFormData = z.infer<typeof announcementSchema>;
@@ -31,6 +43,7 @@ interface CreateAnnouncementModalProps {
 export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = ({ open, onOpenChange }) => {
   const { profile } = useAuth();
   const [classes, setClasses] = React.useState<any[]>([]);
+  const [departments, setDepartments] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
 
   const form = useForm<AnnouncementFormData>({
@@ -38,49 +51,74 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
     defaultValues: {
       title: '',
       content: '',
-      classId: '',
       isUrgent: false,
-      visibility: 'class' as const,
+      visibility: 'public' as const,
+      classId: '',
+      departmentId: '',
     },
   });
 
   React.useEffect(() => {
-    const fetchClasses = async () => {
-      if (!profile?.user_id) return;
-      
+    const fetchData = async () => {
+      if (!profile?.user_id || profile.role !== 'teacher') return;
+
       try {
-        const { data, error } = await supabase
+        // Fetch classes taught by this teacher
+        const { data: classesData, error: classesError } = await supabase
           .from('classes')
           .select('id, name, code')
-          .eq('teacher_id', profile.user_id);
+          .eq('teacher_id', profile.id);
 
-        if (error) throw error;
-        setClasses(data || []);
+        if (classesError) throw classesError;
+        setClasses(classesData || []);
+
+        // Fetch all departments for department-wide announcements
+        const { data: departmentsData, error: departmentsError } = await supabase
+          .from('departments')
+          .select('id, name, code')
+          .order('name');
+
+        if (departmentsError) throw departmentsError;
+        setDepartments(departmentsData || []);
       } catch (error) {
-        console.error('Error fetching classes:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
-    if (open) {
-      fetchClasses();
+    if (open && profile?.role === 'teacher') {
+      fetchData();
     }
-  }, [open, profile?.user_id]);
+  }, [open, profile?.user_id, profile?.role, profile?.id]);
 
   const onSubmit = async (data: AnnouncementFormData) => {
-    if (!profile?.user_id) return;
+    if (!profile?.id) return;
 
     setLoading(true);
     try {
+      const announcementData: any = {
+        title: data.title,
+        content: data.content,
+        teacher_id: profile.id,
+        is_urgent: data.isUrgent,
+        visibility: data.visibility,
+      };
+
+      // Set class_id and department_id based on visibility
+      if (data.visibility === 'class') {
+        announcementData.class_id = data.classId || null;
+        announcementData.department_id = null;
+      } else if (data.visibility === 'department') {
+        announcementData.department_id = data.departmentId || null;
+        announcementData.class_id = null;
+      } else {
+        // Public visibility
+        announcementData.class_id = null;
+        announcementData.department_id = null;
+      }
+
       const { error } = await supabase
         .from('announcements')
-        .insert({
-          title: data.title,
-          content: data.content,
-          class_id: data.classId,
-          author_id: profile.user_id,
-          is_urgent: data.isUrgent,
-          visibility: data.visibility,
-        });
+        .insert(announcementData);
 
       if (error) throw error;
 
@@ -95,6 +133,11 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
     }
   };
 
+  // Only teachers can create announcements
+  if (profile?.role !== 'teacher') {
+    return null;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -103,30 +146,6 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="classId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Class</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a class" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {classes.map((cls) => (
-                        <SelectItem key={cls.id} value={cls.id}>
-                          {cls.code} - {cls.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="title"
@@ -183,21 +202,77 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Visibility</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select visibility" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="public">Public (all users)</SelectItem>
+                      <SelectItem value="department">Department only</SelectItem>
                       <SelectItem value="class">Class only</SelectItem>
-                      <SelectItem value="all_users">All users</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {/* Conditional fields based on visibility */}
+            {form.watch('visibility') === 'department' && (
+              <FormField
+                control={form.control}
+                name="departmentId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Department</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept.id} value={dept.id}>
+                            {dept.name} ({dept.code})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {form.watch('visibility') === 'class' && (
+              <FormField
+                control={form.control}
+                name="classId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Class</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a class" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {classes.map((cls) => (
+                          <SelectItem key={cls.id} value={cls.id}>
+                            {cls.code} - {cls.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <div className="flex justify-end gap-2">
               <Button
                 type="button"
