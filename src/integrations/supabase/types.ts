@@ -14,171 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      students: {
-        Row: {
-          id: string
-          user_id: string
-          full_name: string
-          student_id: string | null
-          department_id: string | null
-          semester: number | null
-          graduation_year: number | null
-          avatar_url: string | null
-          bio: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          full_name: string
-          student_id?: string | null
-          department_id?: string | null
-          semester?: number | null
-          graduation_year?: number | null
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          full_name?: string
-          student_id?: string | null
-          department_id?: string | null
-          semester?: number | null
-          graduation_year?: number | null
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "students_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "students_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      teachers: {
-        Row: {
-          id: string
-          user_id: string
-          full_name: string
-          employee_id: string | null
-          department_id: string | null
-          title: string | null
-          avatar_url: string | null
-          bio: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          full_name: string
-          employee_id?: string | null
-          department_id?: string | null
-          title?: string | null
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          full_name?: string
-          employee_id?: string | null
-          department_id?: string | null
-          title?: string | null
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "teachers_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "teachers_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      users: {
-        Row: {
-          id: string
-          email: string
-          created_at: string
-        }
-        Insert: {
-          id: string
-          email: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          created_at?: string
-        }
-        Relationships: []
-      }
       announcements: {
         Row: {
-          teacher_id: string | null
+          body: string
           class_id: string | null
-          content: string
           created_at: string | null
           department_id: string | null
           id: string
+          is_deleted: boolean | null
           is_urgent: boolean | null
+          teacher_id: string | null
           title: string
           updated_at: string | null
-          visibility: string | null
+          visibility: Database["public"]["Enums"]["visibilite"] | null
         }
         Insert: {
-          teacher_id?: string | null
+          body: string
           class_id?: string | null
-          content: string
           created_at?: string | null
           department_id?: string | null
           id?: string
+          is_deleted?: boolean | null
           is_urgent?: boolean | null
+          teacher_id?: string | null
           title: string
           updated_at?: string | null
-          visibility?: string | null
+          visibility?: Database["public"]["Enums"]["visibilite"] | null
         }
         Update: {
-          teacher_id?: string | null
+          body?: string
           class_id?: string | null
-          content?: string
           created_at?: string | null
           department_id?: string | null
           id?: string
+          is_deleted?: boolean | null
           is_urgent?: boolean | null
+          teacher_id?: string | null
           title?: string
           updated_at?: string | null
-          visibility?: string | null
+          visibility?: Database["public"]["Enums"]["visibilite"] | null
         }
         Relationships: [
           {
@@ -195,51 +69,47 @@ export type Database = {
             referencedRelation: "departments"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "announcements_teacher_id_fkey"
-            columns: ["teacher_id"]
-            isOneToOne: false
-            referencedRelation: "teachers"
-            referencedColumns: ["id"]
-          },
         ]
       }
       assignment_submissions: {
         Row: {
           assignment_id: string | null
-          content: string | null
           feedback: string | null
           file_urls: string[] | null
           grade: number | null
           graded_at: string | null
           graded_by: string | null
           id: string
+          status: Database["public"]["Enums"]["submit_status"] | null
           student_id: string | null
           submitted_at: string | null
+          text_answer: string | null
         }
         Insert: {
           assignment_id?: string | null
-          content?: string | null
           feedback?: string | null
           file_urls?: string[] | null
           grade?: number | null
           graded_at?: string | null
           graded_by?: string | null
           id?: string
+          status?: Database["public"]["Enums"]["submit_status"] | null
           student_id?: string | null
           submitted_at?: string | null
+          text_answer?: string | null
         }
         Update: {
           assignment_id?: string | null
-          content?: string | null
           feedback?: string | null
           file_urls?: string[] | null
           grade?: number | null
           graded_at?: string | null
           graded_by?: string | null
           id?: string
+          status?: Database["public"]["Enums"]["submit_status"] | null
           student_id?: string | null
           submitted_at?: string | null
+          text_answer?: string | null
         }
         Relationships: [
           {
@@ -256,8 +126,9 @@ export type Database = {
           class_id: string | null
           created_at: string | null
           description: string
-          due_date: string | null
+          due_at: string | null
           id: string
+          is_deleted: boolean | null
           is_published: boolean | null
           teacher_id: string | null
           title: string
@@ -268,8 +139,9 @@ export type Database = {
           class_id?: string | null
           created_at?: string | null
           description: string
-          due_date?: string | null
+          due_at?: string | null
           id?: string
+          is_deleted?: boolean | null
           is_published?: boolean | null
           teacher_id?: string | null
           title: string
@@ -280,8 +152,9 @@ export type Database = {
           class_id?: string | null
           created_at?: string | null
           description?: string
-          due_date?: string | null
+          due_at?: string | null
           id?: string
+          is_deleted?: boolean | null
           is_published?: boolean | null
           teacher_id?: string | null
           title?: string
@@ -298,25 +171,76 @@ export type Database = {
           },
         ]
       }
+      audit: {
+        Row: {
+          action: string | null
+          changed_at: string | null
+          changed_by: string | null
+          id: number
+          new_values: Json | null
+          old_values: Json | null
+          row_id: string
+          table_name: string
+        }
+        Insert: {
+          action?: string | null
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: number
+          new_values?: Json | null
+          old_values?: Json | null
+          row_id: string
+          table_name: string
+        }
+        Update: {
+          action?: string | null
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: number
+          new_values?: Json | null
+          old_values?: Json | null
+          row_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
+      campuses: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          name: string
+          timezone: string | null
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          name: string
+          timezone?: string | null
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          timezone?: string | null
+        }
+        Relationships: []
+      }
       chat_participants: {
         Row: {
           id: string
-          joined_at: string | null
-          last_read_at: string | null
+          last_read: string | null
           room_id: string | null
           user_id: string | null
         }
         Insert: {
           id?: string
-          joined_at?: string | null
-          last_read_at?: string | null
+          last_read?: string | null
           room_id?: string | null
           user_id?: string | null
         }
         Update: {
           id?: string
-          joined_at?: string | null
-          last_read_at?: string | null
+          last_read?: string | null
           room_id?: string | null
           user_id?: string | null
         }
@@ -336,24 +260,27 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           id: string
+          is_archived: boolean | null
           name: string | null
-          type: string
+          type: Database["public"]["Enums"]["room_type"]
         }
         Insert: {
           class_id?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string
+          is_archived?: boolean | null
           name?: string | null
-          type: string
+          type: Database["public"]["Enums"]["room_type"]
         }
         Update: {
           class_id?: string | null
           created_at?: string | null
           created_by?: string | null
           id?: string
+          is_archived?: boolean | null
           name?: string | null
-          type?: string
+          type?: Database["public"]["Enums"]["room_type"]
         }
         Relationships: [
           {
@@ -370,19 +297,19 @@ export type Database = {
           class_id: string | null
           enrolled_at: string | null
           id: string
-          user_id: string | null
+          student_id: string | null
         }
         Insert: {
           class_id?: string | null
           enrolled_at?: string | null
           id?: string
-          user_id?: string | null
+          student_id?: string | null
         }
         Update: {
           class_id?: string | null
           enrolled_at?: string | null
           id?: string
-          user_id?: string | null
+          student_id?: string | null
         }
         Relationships: [
           {
@@ -400,42 +327,36 @@ export type Database = {
           created_at: string | null
           credits: number | null
           department_id: string | null
-          departments: string[] | null
-          description: string | null
-          duration_hours: number | null
           id: string
+          is_archived: boolean | null
           max_students: number | null
           name: string
-          semesters: number[] | null
           teacher_id: string | null
+          updated_at: string | null
         }
         Insert: {
           code: string
           created_at?: string | null
           credits?: number | null
           department_id?: string | null
-          departments?: string[] | null
-          description?: string | null
-          duration_hours?: number | null
           id?: string
+          is_archived?: boolean | null
           max_students?: number | null
           name: string
-          semesters?: number[] | null
           teacher_id?: string | null
+          updated_at?: string | null
         }
         Update: {
           code?: string
           created_at?: string | null
           credits?: number | null
           department_id?: string | null
-          departments?: string[] | null
-          description?: string | null
-          duration_hours?: number | null
           id?: string
+          is_archived?: boolean | null
           max_students?: number | null
           name?: string
-          semesters?: number[] | null
           teacher_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -449,61 +370,66 @@ export type Database = {
       }
       departments: {
         Row: {
+          campus_id: string | null
           code: string
-          created_at: string | null
-          description: string | null
           id: string
           name: string
         }
         Insert: {
+          campus_id?: string | null
           code: string
-          created_at?: string | null
-          description?: string | null
           id?: string
           name: string
         }
         Update: {
+          campus_id?: string | null
           code?: string
-          created_at?: string | null
-          description?: string | null
           id?: string
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "departments_campus_id_fkey"
+            columns: ["campus_id"]
+            isOneToOne: false
+            referencedRelation: "campuses"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       documents: {
         Row: {
           class_id: string | null
-          created_at: string | null
-          description: string | null
           file_size: number | null
-          file_type: string | null
           file_url: string
           id: string
+          is_hidden: boolean | null
+          mime_type: string | null
           name: string
-          uploaded_by: string | null
+          uploaded_at: string | null
+          uploader_id: string | null
         }
         Insert: {
           class_id?: string | null
-          created_at?: string | null
-          description?: string | null
           file_size?: number | null
-          file_type?: string | null
           file_url: string
           id?: string
+          is_hidden?: boolean | null
+          mime_type?: string | null
           name: string
-          uploaded_by?: string | null
+          uploaded_at?: string | null
+          uploader_id?: string | null
         }
         Update: {
           class_id?: string | null
-          created_at?: string | null
-          description?: string | null
           file_size?: number | null
-          file_type?: string | null
           file_url?: string
           id?: string
+          is_hidden?: boolean | null
+          mime_type?: string | null
           name?: string
-          uploaded_by?: string | null
+          uploaded_at?: string | null
+          uploader_id?: string | null
         }
         Relationships: [
           {
@@ -521,7 +447,8 @@ export type Database = {
           created_at: string | null
           file_url: string | null
           id: string
-          message_type: string | null
+          is_deleted: boolean | null
+          msg_type: Database["public"]["Enums"]["msg_type"] | null
           room_id: string | null
           sender_id: string | null
         }
@@ -530,7 +457,8 @@ export type Database = {
           created_at?: string | null
           file_url?: string | null
           id?: string
-          message_type?: string | null
+          is_deleted?: boolean | null
+          msg_type?: Database["public"]["Enums"]["msg_type"] | null
           room_id?: string | null
           sender_id?: string | null
         }
@@ -539,7 +467,8 @@ export type Database = {
           created_at?: string | null
           file_url?: string | null
           id?: string
-          message_type?: string | null
+          is_deleted?: boolean | null
+          msg_type?: Database["public"]["Enums"]["msg_type"] | null
           room_id?: string | null
           sender_id?: string | null
         }
@@ -555,33 +484,33 @@ export type Database = {
       }
       posts: {
         Row: {
-          author_id: string | null
+          author_id: string
           class_id: string | null
           content: string
           created_at: string | null
           id: string
           image_urls: string[] | null
-          type: string | null
+          is_deleted: boolean | null
           updated_at: string | null
         }
         Insert: {
-          author_id?: string | null
+          author_id: string
           class_id?: string | null
           content: string
           created_at?: string | null
           id?: string
           image_urls?: string[] | null
-          type?: string | null
+          is_deleted?: boolean | null
           updated_at?: string | null
         }
         Update: {
-          author_id?: string | null
+          author_id?: string
           class_id?: string | null
           content?: string
           created_at?: string | null
           id?: string
           image_urls?: string[] | null
-          type?: string | null
+          is_deleted?: boolean | null
           updated_at?: string | null
         }
         Relationships: [
@@ -594,68 +523,174 @@ export type Database = {
           },
         ]
       }
-      profiles: {
+      students: {
         Row: {
-          avatar_url: string | null
-          bio: string | null
-          created_at: string | null
-          department_id: string | null
-          full_name: string
-          graduation_year: number | null
+          enrollment_year: number | null
           id: string
-          role: Database["public"]["Enums"]["user_role"]
-          semester: number | null
-          student_id: string | null
-          updated_at: string | null
-          user_id: string | null
+          level: string | null
+          major: string | null
         }
         Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string | null
-          department_id?: string | null
-          full_name: string
-          graduation_year?: number | null
-          id?: string
-          role: Database["public"]["Enums"]["user_role"]
-          semester?: number | null
-          student_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
+          enrollment_year?: number | null
+          id: string
+          level?: string | null
+          major?: string | null
         }
         Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string | null
-          department_id?: string | null
-          full_name?: string
-          graduation_year?: number | null
+          enrollment_year?: number | null
           id?: string
-          role?: Database["public"]["Enums"]["user_role"]
-          semester?: number | null
-          student_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
+          level?: string | null
+          major?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "profiles_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
+            foreignKeyName: "students_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
+      }
+      teachers: {
+        Row: {
+          bio: string | null
+          department: string | null
+          id: string
+          title: string | null
+        }
+        Insert: {
+          bio?: string | null
+          department?: string | null
+          id: string
+          title?: string | null
+        }
+        Update: {
+          bio?: string | null
+          department?: string | null
+          id?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teachers_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_sync_audit: {
+        Row: {
+          auth_user_id: string | null
+          created_at: string | null
+          id: string
+          message: string | null
+          operation: string | null
+          payload: Json | null
+          status: string | null
+        }
+        Insert: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          operation?: string | null
+          payload?: Json | null
+          status?: string | null
+        }
+        Update: {
+          auth_user_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          operation?: string | null
+          payload?: Json | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string
+          id: string
+          password_hash: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id?: string
+          password_hash: string
+          role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          password_hash?: string
+          role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: []
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      test_user_registration: {
+        Args: {
+          test_email: string
+          test_full_name?: string
+          test_role?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
+      app_role: "student" | "teacher" | "admin"
+      msg_type: "text" | "file" | "image" | "system"
+      room_type: "direct" | "class" | "group"
+      submit_status: "draft" | "submitted" | "graded" | "returned"
       user_role: "student" | "teacher"
+      visibilite: "public" | "department" | "class" | "private"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -783,7 +818,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["student", "teacher", "admin"],
+      msg_type: ["text", "file", "image", "system"],
+      room_type: ["direct", "class", "group"],
+      submit_status: ["draft", "submitted", "graded", "returned"],
       user_role: ["student", "teacher"],
+      visibilite: ["public", "department", "class", "private"],
     },
   },
 } as const
