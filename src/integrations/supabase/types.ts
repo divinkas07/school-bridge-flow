@@ -327,6 +327,7 @@ export type Database = {
           created_at: string | null
           credits: number | null
           department_id: string | null
+          description: string | null
           id: string
           is_archived: boolean | null
           max_students: number | null
@@ -339,6 +340,7 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           department_id?: string | null
+          description?: string | null
           id?: string
           is_archived?: boolean | null
           max_students?: number | null
@@ -351,6 +353,7 @@ export type Database = {
           created_at?: string | null
           credits?: number | null
           department_id?: string | null
+          description?: string | null
           id?: string
           is_archived?: boolean | null
           max_students?: number | null
@@ -525,19 +528,28 @@ export type Database = {
       }
       students: {
         Row: {
+          avatar_url: string | null
+          created_at: string | null
           enrollment_year: number | null
+          full_name: string | null
           id: string
           level: string | null
           major: string | null
         }
         Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
           enrollment_year?: number | null
+          full_name?: string | null
           id: string
           level?: string | null
           major?: string | null
         }
         Update: {
+          avatar_url?: string | null
+          created_at?: string | null
           enrollment_year?: number | null
+          full_name?: string | null
           id?: string
           level?: string | null
           major?: string | null
@@ -554,20 +566,29 @@ export type Database = {
       }
       teachers: {
         Row: {
+          avatar_url: string | null
           bio: string | null
+          created_at: string | null
           department: string | null
+          full_name: string | null
           id: string
           title: string | null
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
+          created_at?: string | null
           department?: string | null
+          full_name?: string | null
           id: string
           title?: string | null
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
+          created_at?: string | null
           department?: string | null
+          full_name?: string | null
           id?: string
           title?: string | null
         }
