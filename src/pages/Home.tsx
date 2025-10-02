@@ -68,16 +68,19 @@ const Home = () => {
           .from('assignments')
           .select(`
             *,
-            teachers (
-              full_name,
-              avatar_url
-            ),
             classes (
               name
             )
           `)
           .eq('is_published', true)
           .order('created_at', { ascending: false });
+
+        // Fetch teacher details for assignments
+        const assignmentTeacherIds = assignments?.map(a => a.teacher_id).filter(Boolean) || [];
+        const { data: assignmentTeachers } = assignmentTeacherIds.length > 0 ? await supabase
+          .from('teachers')
+          .select('id, full_name, avatar_url')
+          .in('id', assignmentTeacherIds) : { data: [] };
 
         // For now, show all announcements (they will be filtered by RLS policies)
         // TODO: Add client-side filtering based on user relationships
@@ -107,6 +110,7 @@ const Home = () => {
 
         const postItems: FeedItem[] = (posts || []).map(post => {
           const author = allPostAuthors.find(a => a.id === post.author_id);
+          const isTeacher = postTeacherAuthors?.some(t => t.id === post.author_id) || false;
           return {
             id: post.id,
             type: 'post',
@@ -115,27 +119,30 @@ const Home = () => {
             author: {
               name: author?.full_name || 'Unknown',
               avatar: author?.avatar_url,
-              role: post.author_type === 'teacher' ? 'teacher' : 'student'
+              role: isTeacher ? 'teacher' : 'student'
             },
             className: post.classes?.name,
             createdAt: post.created_at || ''
           };
         });
 
-        const assignmentItems: FeedItem[] = (assignments || []).map(ass => ({
-          id: ass.id,
-          type: 'assignment',
-          title: ass.title,
-          content: ass.description,
-          author: {
-            name: ass.teachers?.full_name || 'Unknown',
-            avatar: ass.teachers?.avatar_url,
-            role: 'teacher'
-          },
-          className: ass.classes?.name,
-          dueDate: ass.due_date,
-          createdAt: ass.created_at || ''
-        }));
+        const assignmentItems: FeedItem[] = (assignments || []).map(ass => {
+          const teacher = assignmentTeachers?.find(t => t.id === ass.teacher_id);
+          return {
+            id: ass.id,
+            type: 'assignment',
+            title: ass.title,
+            content: ass.description,
+            author: {
+              name: teacher?.full_name || 'Unknown',
+              avatar: teacher?.avatar_url,
+              role: 'teacher'
+            },
+            className: ass.classes?.name,
+            dueDate: ass.due_at,
+            createdAt: ass.created_at || ''
+          };
+        });
 
         // Combine and sort: urgent announcements first, then all announcements, then posts and assignments by date
         const allItems = [...announcementItems, ...postItems, ...assignmentItems]

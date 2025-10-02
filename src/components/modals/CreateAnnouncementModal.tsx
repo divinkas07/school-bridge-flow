@@ -38,9 +38,11 @@ type AnnouncementFormData = z.infer<typeof announcementSchema>;
 interface CreateAnnouncementModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  classId?: string;
+  onSuccess?: () => void;
 }
 
-export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = ({ open, onOpenChange }) => {
+export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = ({ open, onOpenChange, classId, onSuccess }) => {
   const { profile } = useAuth();
   const [classes, setClasses] = React.useState<any[]>([]);
   const [departments, setDepartments] = React.useState<any[]>([]);
@@ -52,8 +54,8 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
       title: '',
       content: '',
       isUrgent: false,
-      visibility: 'public' as const,
-      classId: '',
+      visibility: classId ? 'class' as const : 'public' as const,
+      classId: classId || '',
       departmentId: '',
     },
   });
@@ -125,6 +127,7 @@ export const CreateAnnouncementModal: React.FC<CreateAnnouncementModalProps> = (
       toast.success('Announcement created successfully!');
       form.reset();
       onOpenChange(false);
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error creating announcement:', error);
       toast.error('Failed to create announcement');

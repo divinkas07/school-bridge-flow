@@ -32,9 +32,11 @@ type PostFormData = z.infer<typeof postSchema>;
 interface CreatePostModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  classId?: string;
+  onSuccess?: () => void;
 }
 
-export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenChange }) => {
+export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenChange, classId, onSuccess }) => {
   const { profile } = useAuth();
   const [loading, setLoading] = React.useState(false);
   const [uploadedFiles, setUploadedFiles] = React.useState<File[]>([]);
@@ -165,6 +167,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({ open, onOpenCh
       form.reset();
       setUploadedFiles([]);
       onOpenChange(false);
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error creating post:', error);
       toast.error('Failed to create post');

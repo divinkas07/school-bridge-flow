@@ -27,9 +27,11 @@ type AssignmentFormData = z.infer<typeof assignmentSchema>;
 interface CreateAssignmentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  classId?: string;
+  onSuccess?: () => void;
 }
 
-export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({ open, onOpenChange }) => {
+export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({ open, onOpenChange, classId, onSuccess }) => {
   const { profile } = useAuth();
   const [classes, setClasses] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -39,7 +41,7 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({ op
     defaultValues: {
       title: '',
       description: '',
-      classId: '',
+      classId: classId || '',
       totalPoints: 100,
       dueDate: '',
       isPublished: false,
@@ -90,6 +92,7 @@ export const CreateAssignmentModal: React.FC<CreateAssignmentModalProps> = ({ op
       toast.success('Assignment created successfully!');
       form.reset();
       onOpenChange(false);
+      if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error creating assignment:', error);
       toast.error('Failed to create assignment');

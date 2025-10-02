@@ -45,7 +45,7 @@ interface Assignment {
   id: string;
   title: string;
   description: string;
-  due_date: string;
+  due_at: string;
   total_points: number;
   is_published: boolean;
   created_at: string;
@@ -613,7 +613,7 @@ const ClassDetails = () => {
                               {assignment.is_published ? "Published" : "Draft"}
                             </Badge>
                             <span className="text-xs lg:text-sm text-muted-foreground">
-                              Due: {new Date(assignment.due_date).toLocaleDateString()}
+                              Due: {new Date(assignment.due_at).toLocaleDateString()}
                             </span>
                             <span className="text-xs lg:text-sm text-muted-foreground">
                               {assignment.total_points} points
@@ -769,19 +769,19 @@ const ClassDetails = () => {
             open={showCreateAssignment}
             onOpenChange={setShowCreateAssignment}
             classId={id!}
-            onSuccess={fetchClassDetails}
+            onSuccess={() => fetchClassDetails(true)}
           />
           <CreatePostModal
             open={showCreatePost}
             onOpenChange={setShowCreatePost}
             classId={id!}
-            onSuccess={fetchClassDetails}
+            onSuccess={() => fetchClassDetails(true)}
           />
           <CreateAnnouncementModal
             open={showCreateAnnouncement}
             onOpenChange={setShowCreateAnnouncement}
             classId={id!}
-            onSuccess={fetchClassDetails}
+            onSuccess={() => fetchClassDetails(true)}
           />
         </>
       )}
