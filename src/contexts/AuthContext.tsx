@@ -223,19 +223,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         toast({
-          title: "Sign up failed",
+          title: "Échec de l'inscription",
           description: error.message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Sign up successful!",
-          description: "Please check your email to confirm your account.",
+          title: "Inscription réussie !",
+          description: "Vérifiez votre email pour confirmer votre compte.",
         });
       }
 
       return { error };
     } catch (error: any) {
+      toast({
+        title: "Erreur d'inscription",
+        description: error.message || "Une erreur s'est produite",
+        variant: "destructive",
+      });
       return { error };
     }
   };
@@ -249,7 +254,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         toast({
-          title: "Sign in failed",
+          title: "Échec de la connexion",
           description: error.message,
           variant: "destructive",
         });
@@ -257,6 +262,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return { error };
     } catch (error: any) {
+      toast({
+        title: "Erreur de connexion",
+        description: error.message || "Une erreur s'est produite",
+        variant: "destructive",
+      });
       return { error };
     }
   };
@@ -267,7 +277,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null);
     setProfile(null);
     toast({
-      title: "Signed out successfully",
+      title: "Déconnexion réussie",
     });
   };
 
@@ -283,7 +293,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!error && profile) {
       setProfile({ ...profile, ...updates });
       toast({
-        title: "Profile updated successfully",
+        title: "Profil mis à jour avec succès",
+      });
+    } else if (error) {
+      toast({
+        title: "Échec de la mise à jour",
+        description: error.message,
+        variant: "destructive",
       });
     }
 
