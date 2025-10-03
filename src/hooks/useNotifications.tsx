@@ -52,7 +52,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
         .select(`
           id,
           title,
-          content,
+          body,
           created_at,
           is_urgent,
           class_id,
@@ -68,7 +68,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
           id: `announcement-${announcement.id}`,
           type: 'announcement',
           title: announcement.title,
-          content: announcement.content,
+          content: announcement.body,
           className: announcement.classes?.name,
           classId: announcement.class_id,
           createdAt: announcement.created_at,
@@ -83,14 +83,14 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
         .select(`
           id,
           title,
-          due_date,
+          due_at,
           created_at,
           class_id,
           classes(name)
         `)
-        .gte('due_date', new Date().toISOString())
-        .lte('due_date', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()) // Next 7 days
-        .order('due_date', { ascending: true })
+        .gte('due_at', new Date().toISOString())
+        .lte('due_at', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()) // Next 7 days
+        .order('due_at', { ascending: true })
         .limit(10);
 
       assignments?.forEach(assignment => {
@@ -98,7 +98,7 @@ export const NotificationsProvider: React.FC<{ children: ReactNode }> = ({ child
           id: `assignment-${assignment.id}`,
           type: 'assignment',
           title: `Assignment Due: ${assignment.title}`,
-          content: `Due in ${Math.ceil((new Date(assignment.due_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days`,
+          content: `Due in ${Math.ceil((new Date(assignment.due_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))} days`,
           className: assignment.classes?.name,
           classId: assignment.class_id,
           createdAt: assignment.created_at,

@@ -89,13 +89,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: studentData } = await supabase
               .from('students')
               .select('*')
-              .eq('user_id', session.user.id)
+              .eq('id', session.user.id)
               .single();
 
             if (studentData) {
               setProfile({
-                ...studentData,
+                id: studentData.id,
+                user_id: studentData.id,
+                full_name: studentData.full_name || '',
                 role: 'student' as UserRole,
+                avatar_url: studentData.avatar_url,
+                semester: undefined,
+                graduation_year: undefined,
+                student_id: undefined,
+                department_id: undefined,
               });
               setLoading(false);
               return;
@@ -105,13 +112,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: teacherData } = await supabase
               .from('teachers')
               .select('*')
-              .eq('user_id', session.user.id)
+              .eq('id', session.user.id)
               .single();
 
             if (teacherData) {
               setProfile({
-                ...teacherData,
+                id: teacherData.id,
+                user_id: teacherData.id,
+                full_name: teacherData.full_name || '',
                 role: 'teacher' as UserRole,
+                avatar_url: teacherData.avatar_url,
+                bio: teacherData.bio,
+                title: teacherData.title,
               });
               setLoading(false);
               return;
@@ -138,13 +150,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         supabase
           .from('students')
           .select('*')
-          .eq('user_id', session.user.id)
+          .eq('id', session.user.id)
           .single()
           .then(async ({ data: studentData, error: studentError }) => {
             if (studentData && !studentError) {
               setProfile({
-                ...studentData,
+                id: studentData.id,
+                user_id: studentData.id,
+                full_name: studentData.full_name || '',
                 role: 'student' as UserRole,
+                avatar_url: studentData.avatar_url,
+                semester: undefined,
+                graduation_year: undefined,
+                student_id: undefined,
+                department_id: undefined,
               });
               setLoading(false);
               return;
@@ -154,13 +173,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: teacherData, error: teacherError } = await supabase
               .from('teachers')
               .select('*')
-              .eq('user_id', session.user.id)
+              .eq('id', session.user.id)
               .single();
 
             if (teacherData && !teacherError) {
               setProfile({
-                ...teacherData,
+                id: teacherData.id,
+                user_id: teacherData.id,
+                full_name: teacherData.full_name || '',
                 role: 'teacher' as UserRole,
+                avatar_url: teacherData.avatar_url,
+                bio: teacherData.bio,
+                title: teacherData.title,
               });
               setLoading(false);
               return;
@@ -254,7 +278,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { error } = await supabase
       .from(table)
       .update(updates)
-      .eq('user_id', user.id);
+      .eq('id', user.id);
 
     if (!error && profile) {
       setProfile({ ...profile, ...updates });

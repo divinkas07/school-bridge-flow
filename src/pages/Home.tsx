@@ -16,7 +16,6 @@ const Home = () => {
     const fetchFeedItems = async () => {
       setLoading(true);
       try {
-        // Fetch relevant announcements based on user role and relationships
         const { data: announcements } = await supabase
           .from('announcements')
           .select(`
@@ -45,7 +44,6 @@ const Home = () => {
               name
             )
           `)
-          .eq('type', 'all_users')
           .order('created_at', { ascending: false });
 
         // Fetch author details for posts
@@ -94,7 +92,7 @@ const Home = () => {
             id: ann.id,
             type: 'announcement',
             title: ann.title,
-            content: ann.content,
+            content: ann.body,
             author: {
               name: ann.teachers?.full_name || 'Unknown',
               avatar: ann.teachers?.avatar_url,

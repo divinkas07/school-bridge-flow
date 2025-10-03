@@ -120,7 +120,6 @@ const ClassDetails = () => {
           name,
           code,
           description,
-          duration_hours,
           max_students,
           teacher_id,
           departments (
@@ -136,14 +135,14 @@ const ClassDetails = () => {
       let teacherInfo = { name: 'Unknown teacher', avatar: undefined };
       if (classData.teacher_id) {
         const { data: teacherProfile } = await supabase
-          .from('profiles')
+          .from('teachers')
           .select('full_name, avatar_url')
-          .eq('user_id', classData.teacher_id)
+          .eq('id', classData.teacher_id)
           .maybeSingle();
 
         if (teacherProfile) {
           teacherInfo = {
-            name: teacherProfile.full_name,
+            name: teacherProfile.full_name || 'Unknown teacher',
             avatar: teacherProfile.avatar_url,
           };
         }
@@ -160,7 +159,7 @@ const ClassDetails = () => {
         name: classData.name,
         code: classData.code,
         description: classData.description || 'No description',
-        duration_hours: classData.duration_hours || 0,
+        duration_hours: 0,
         max_students: classData.max_students || 0,
         teacher: teacherInfo,
         department: classData.departments?.name || 'Not defined',
@@ -179,62 +178,68 @@ const ClassDetails = () => {
       // Fetch posts
       const { data: postsData } = await supabase
         .from('posts')
-        .select(`
-          id,
-          content,
-          created_at,
-          type,
-          image_urls,
-          author_id,
-          profiles (
-            full_name,
-            avatar_url
-          )
-        `)
+        .select('id, content, created_at, image_urls, author_id')
         .eq('class_id', id)
         .order('created_at', { ascending: false });
 
-      const enrichedPosts = postsData?.map((post: any) => ({
-        id: post.id,
-        content: post.content,
-        created_at: post.created_at,
-        type: post.type,
-        image_urls: post.image_urls,
-        author: {
-          name: post.profiles?.full_name || 'Unknown',
-          avatar: post.profiles?.avatar_url,
-        },
-      })) || [];
+      // Fetch author details for posts
+      const postAuthorIds = postsData?.map(p => p.author_id) || [];
+      const { data: postStudentAuthors } = postAuthorIds.length > 0 ? await supabase
+        .from('students')
+        .select('id, full_name, avatar_url')
+        .in('id', postAuthorIds) : { data: [] };
+
+      const { data: postTeacherAuthors } = postAuthorIds.length > 0 ? await supabase
+        .from('teachers')
+        .select('id, full_name, avatar_url')
+        .in('id', postAuthorIds) : { data: [] };
+
+      const allPostAuthors = [...(postStudentAuthors || []), ...(postTeacherAuthors || [])];
+
+      const enrichedPosts = postsData?.map((post: any) => {
+        const author = allPostAuthors.find(a => a.id === post.author_id);
+        return {
+          id: post.id,
+          content: post.content,
+          created_at: post.created_at,
+          type: 'post',
+          image_urls: post.image_urls,
+          author: {
+            name: author?.full_name || 'Unknown',
+            avatar: author?.avatar_url,
+          },
+        };
+      }) || [];
 
       setPosts(enrichedPosts);
 
       // Fetch announcements
       const { data: announcementsData } = await supabase
         .from('announcements')
-        .select(`
-          id,
-          title,
-          content,
-          created_at,
-          is_urgent,
-          author_id,
-          profiles (
-            full_name
-          )
-        `)
+        .select('id, title, body, created_at, is_urgent, teacher_id')
         .eq('class_id', id)
         .order('created_at', { ascending: false });
 
-      const enrichedAnnouncements = announcementsData?.map((announcement: any) => ({
-        id: announcement.id,
-        title: announcement.title,
-        content: announcement.content,
-        created_at: announcement.created_at,
-        is_urgent: announcement.is_urgent,
-        author: {
-          name: announcement.profiles?.full_name || 'Unknown',
-        },
-      })) || [];
+      // Fetch teacher details for announcements
+      const announcementTeacherIds = announcementsData?.map(a => a.teacher_id).filter(Boolean) || [];
+      const { data: announcementTeachers } = announcementTeacherIds.length > 0 ? await supabase
+        .from('teachers')
+        .select('id, full_name')
+        .in('id', announcementTeacherIds) : { data: [] };
+
+      const enrichedAnnouncements = announcementsData?.map((announcement: any) => {
+        const teacher = announcementTeachers?.find(t => t.id === announcement.teacher_id);
+        return {
+          id: announcement.id,
+          title: announcement.title,
+          content: announcement.body,
+          created_at: announcement.created_at,
+          is_urgent: announcement.is_urgent,
+          author: {
+            name: teacher?.full_name || 'Unknown',
+          },
+        };
+      }) || [];
 
       setAnnouncements(enrichedAnnouncements);
 

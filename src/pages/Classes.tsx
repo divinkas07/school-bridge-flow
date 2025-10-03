@@ -67,7 +67,7 @@ const Classes = () => {
                 )
               )
             `)
-            .eq('user_id', profile.user_id);
+            .eq('student_id', profile.user_id);
 
           if (error) throw error;
           classesData = enrollments?.map((e) => e.classes).filter(Boolean) || [];
@@ -93,7 +93,7 @@ const Classes = () => {
           const { data: enrollments } = await supabase
             .from('class_enrollments')
             .select('class_id')
-            .eq('user_id', profile.user_id);
+            .eq('student_id', profile.user_id);
 
           const enrolledClassIds = enrollments?.map(e => e.class_id) || [];
           classesData = allClasses?.filter(cls => !enrolledClassIds.includes(cls.id)) || [];
@@ -132,14 +132,14 @@ const Classes = () => {
           let teacherInfo = { name: 'Unknown teacher', avatar: undefined };
           if (classData.teacher_id) {
             const { data: teacherProfile } = await supabase
-              .from('profiles')
+              .from('teachers')
               .select('full_name, avatar_url')
-              .eq('user_id', classData.teacher_id)
+              .eq('id', classData.teacher_id)
               .maybeSingle();
 
             if (teacherProfile) {
               teacherInfo = {
-                name: teacherProfile.full_name,
+                name: teacherProfile.full_name || 'Unknown teacher',
                 avatar: teacherProfile.avatar_url,
               };
             }
@@ -260,7 +260,7 @@ const Classes = () => {
         const { error } = await supabase
           .from('class_enrollments')
           .insert({
-            user_id: profile.user_id,
+            student_id: profile.user_id,
             class_id: classInfo.id
           });
 
