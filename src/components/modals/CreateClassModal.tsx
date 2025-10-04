@@ -19,7 +19,6 @@ const classSchema = z.object({
   description: z.string().optional(),
   credits: z.number().min(1, 'Credits must be at least 1').max(20, 'Credits cannot exceed 20'),
   max_students: z.number().min(1, 'Must allow at least 1 student').max(200, 'Cannot exceed 200 students'),
-  department_id: z.string().min(1, 'Department is required'),
 });
 
 type ClassFormData = z.infer<typeof classSchema>;
@@ -48,7 +47,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
       description: '',
       credits: 3,
       max_students: 30,
-      department_id: '',
     },
   });
 
@@ -93,7 +91,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
         credits: data.credits,
         max_students: data.max_students,
         teacher_id: profile.user_id,
-        department_id: data.department_id,
       };
 
       const { error } = await supabase
@@ -122,7 +119,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
         description: '',
         credits: 3,
         max_students: 30,
-        department_id: '',
       });
     }
   }, [open, form]);
@@ -181,7 +177,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="credits"
@@ -225,28 +220,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
 
             <FormField
               control={form.control}
-              name="department_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Department</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a department" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {loadingDepartments ? (
-                        <div className="p-2 text-sm text-muted-foreground">Loading...</div>
-                      ) : (
-                        departments.map((department) => (
-                          <SelectItem key={department.id} value={department.id}>
-                            {department.code} - {department.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
