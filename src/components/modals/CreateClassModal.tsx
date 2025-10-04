@@ -18,10 +18,8 @@ const classSchema = z.object({
   code: z.string().min(1, 'Class code is required'),
   description: z.string().optional(),
   credits: z.number().min(1, 'Credits must be at least 1').max(20, 'Credits cannot exceed 20'),
-  duration_hours: z.number().min(1, 'Duration must be at least 1 hour').max(8, 'Duration cannot exceed 8 hours'),
   max_students: z.number().min(1, 'Must allow at least 1 student').max(200, 'Cannot exceed 200 students'),
-  semesters: z.array(z.number()).min(1, 'At least one semester must be selected'),
-  departments: z.array(z.string()).min(1, 'At least one department must be selected'),
+  department_id: z.string().min(1, 'Department is required'),
 });
 
 type ClassFormData = z.infer<typeof classSchema>;
@@ -49,10 +47,8 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
       code: '',
       description: '',
       credits: 3,
-      duration_hours: 3,
       max_students: 30,
-      semesters: [],
-      departments: [],
+      department_id: '',
     },
   });
 
@@ -95,13 +91,9 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
         code: data.code,
         description: data.description || null,
         credits: data.credits,
-        duration_hours: data.duration_hours,
         max_students: data.max_students,
-        semesters: data.semesters,
-        departments: data.departments,
         teacher_id: profile.user_id,
-        // For backward compatibility, set department_id to the first selected department
-        department_id: data.departments[0] || null,
+        department_id: data.department_id,
       };
 
       const { error } = await supabase
@@ -109,7 +101,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
         .insert(classData);
 
       if (error) throw error;
-     
 
       toast.success('Class created successfully!');
       form.reset();
@@ -123,8 +114,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
     }
   };
 
-  const semesters = [1, 2, 3, 4, 5, 6, 7, 8];
-
   React.useEffect(() => {
     if (!open) {
       form.reset({
@@ -132,10 +121,8 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
         code: '',
         description: '',
         credits: 3,
-        duration_hours: 3,
         max_students: 30,
-        semesters: [],
-        departments: [],
+        department_id: '',
       });
     }
   }, [open, form]);
@@ -194,7 +181,7 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
               )}
             />
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="credits"
@@ -206,26 +193,6 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
                         type="number" 
                         min="1" 
                         max="20"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="duration_hours"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Duration (hours)</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        min="1" 
-                        max="8"
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                       />
@@ -258,77 +225,28 @@ export const CreateClassModal: React.FC<CreateClassModalProps> = ({
 
             <FormField
               control={form.control}
-              name="semesters"
-              render={() => (
+              name="department_id"
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Concerned Semesters</FormLabel>
-                  <div className="grid grid-cols-4 gap-2">
-                    {semesters.map((semester) => (
-                      <FormField
-                        key={semester}
-                        control={form.control}
-                        name="semesters"
-                        render={({ field }) => (
-                          <FormItem key={semester} className="flex flex-row items-start space-x-2 space-y-0">
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(semester)}
-                                onCheckedChange={(checked) => {
-                                  return checked
-                                    ? field.onChange([...field.value, semester])
-                                    : field.onChange(field.value?.filter((value) => value !== semester))
-                                }}
-                              />
-                            </FormControl>
-                            <FormLabel className="text-sm font-normal">
-                              S{semester}
-                            </FormLabel>
-                          </FormItem>
-                        )}
-                      />
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="departments"
-              render={() => (
-                <FormItem>
-                  <FormLabel>Concerned Departments</FormLabel>
-                  {loadingDepartments ? (
-                    <div className="p-2 text-sm text-muted-foreground">Loading departments...</div>
-                  ) : (
-                    <div className="space-y-2 max-h-32 overflow-y-auto">
-                      {departments.map((department) => (
-                        <FormField
-                          key={department.id}
-                          control={form.control}
-                          name="departments"
-                          render={({ field }) => (
-                            <FormItem key={department.id} className="flex flex-row items-start space-x-2 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(department.id)}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, department.id])
-                                      : field.onChange(field.value?.filter((value) => value !== department.id))
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="text-sm font-normal">
-                                {department.code} - {department.name}
-                              </FormLabel>
-                            </FormItem>
-                          )}
-                        />
-                      ))}
-                    </div>
-                  )}
+                  <FormLabel>Department</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a department" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {loadingDepartments ? (
+                        <div className="p-2 text-sm text-muted-foreground">Loading...</div>
+                      ) : (
+                        departments.map((department) => (
+                          <SelectItem key={department.id} value={department.id}>
+                            {department.code} - {department.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
