@@ -660,7 +660,7 @@ export type Database = {
           full_name: string
           id: string
           password_hash: string
-          role: Database["public"]["Enums"]["user_role"]
+          role: Database["public"]["Enums"]["app_role"]
         }
         Insert: {
           created_at?: string | null
@@ -668,7 +668,7 @@ export type Database = {
           full_name: string
           id?: string
           password_hash: string
-          role: Database["public"]["Enums"]["user_role"]
+          role: Database["public"]["Enums"]["app_role"]
         }
         Update: {
           created_at?: string | null
@@ -676,7 +676,7 @@ export type Database = {
           full_name?: string
           id?: string
           password_hash?: string
-          role?: Database["public"]["Enums"]["user_role"]
+          role?: Database["public"]["Enums"]["app_role"]
         }
         Relationships: []
       }
